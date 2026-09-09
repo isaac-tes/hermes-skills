@@ -26,7 +26,7 @@ Delegate coding tasks to [Pi](https://pi.dev) (`@earendil-works/pi-coding-agent`
 
 ## Prerequisites
 
-- **Install:** `npm install -g @earendil-works/pi-coding-agent` (binary: `pi`). Also: `curl -fsSL https://pi.dev/install.sh | sh`.
+- **Install:** `npm install -g @earendil-works/pi-coding-agent` (binary: `pi`).
 - **Auth:** one of — set a provider API key env var (e.g. `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`), or run `pi` once and use `/login` for subscription providers (Anthropic Pro/Max, ChatGPT/Codex, GitHub Copilot).
 - **Auth check:** `terminal(command="pi auth check --provider anthropic --json")` → `{"status":"ready",...}` or `{"status":"not_ready","reason":"credentials_not_configured"}`. Add `--credentials` to also emit the key.
 - **Version check:** `terminal(command="pi --version")`
