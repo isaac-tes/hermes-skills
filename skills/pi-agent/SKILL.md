@@ -35,6 +35,17 @@ Delegate coding tasks to [Pi](https://pi.dev) (`@earendil-works/pi-coding-agent`
 
 Pi's default tools are `read`, `write`, `edit`, `bash`. `grep`, `find`, `ls` exist but are **off by default**.
 
+## ⚠️ Security Model
+
+Pi has **no built-in permission system** — no approval dialogs, no sandbox. It runs with the permissions of the user/process that launched it, so every delegated run can touch anything that user can. Hermes must enforce boundaries itself:
+
+1. **Scope tools with `--tools`** for every delegated run: `--tools read,grep,find,ls` (read-only review) or `--tools read,edit,write,bash,grep,find,ls` (full).
+2. **`--no-tools` / `-nt`** for analysis-only runs.
+3. **Isolate the workdir** (`workdir=` + a clean git state; `git diff` review after — process boundaries are the safety layer).
+4. **Containerize untrusted work** — Pi's docs cover a Gondolin micro-VM extension, plain Docker, and OpenShell policy sandboxing.
+
+Note the distinction: the interactive *trust dialog* (below) only governs loading project-local resources — it does not restrict what Pi's tools may do.
+
 ## Three Orchestration Modes
 
 Pi has four run modes (interactive, print/JSON, RPC, SDK). The first three matter for Hermes.
@@ -190,6 +201,7 @@ Read the **footer** (bottom lines), top to bottom: working directory, then `↑<
 
 ## Pitfalls & Gotchas
 
+- **No permission system — scope every run with `--tools`.** A bare `pi -p` can do anything the launching user can; the trust dialog does not change this. Read-only set (`read,grep,find,ls`) for reviews, full set only when the task needs writes/bash.
 - **`-p` is plain text, not JSON.** You must add `--mode json` for structured output; don't parse `-p` output as JSON.
 - **No final result blob.** Unlike Claude Code's single result object, Pi streams events — filter `message_end` with `role:assistant` to get the answer and cost.
 - **No `--max-turns` / `--max-budget-usd`.** Pi has no built-in turn or spend cap, so a runaway loop isn't auto-stopped — set a generous `timeout=` and/or use `--no-session` in CI and `kill` the process if it hangs.
@@ -210,6 +222,8 @@ Read the **footer** (bottom lines), top to bottom: working directory, then `↑<
 6. **Monitor with `tmux capture-pane -t <session> -p -S -50`** and read the footer token counts.
 7. **Clean up tmux sessions** with `tmux kill-session -t <name>` when done.
 8. **Report results to the user** after completion.
+9. **Verify independently** — after delegated edits, check `git diff` and run targeted tests yourself; never trust the agent's narrative alone.
+10. **Use `-nc` for deterministic bare runs** when project AGENTS.md/CLAUDE.md context isn't wanted (Pi's mirror of `claude --bare`).
 
 ## Verification
 
